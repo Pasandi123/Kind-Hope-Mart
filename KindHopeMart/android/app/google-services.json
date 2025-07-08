@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "582081899687",
+    "project_id": "kindhopemart",
+    "storage_bucket": "kindhopemart.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582081899687:android:136c059e591b528bb93f82",
+        "android_client_info": {
+          "package_name": "com.kindhopemart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpiNgnC6zVr9BAUFhNrpW8nsnYMu_0UgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
