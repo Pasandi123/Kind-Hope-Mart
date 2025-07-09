@@ -56,7 +56,6 @@ export default function Home() {
   const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // ✅ Updated fetch logic to get ALL donation items
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -182,10 +181,11 @@ export default function Home() {
                 style={styles.productImage}
                 resizeMode="cover"
               />
+              <Text style={{ fontSize: 15, color: '#000'}} numberOfLines={2}>{item.description}</Text>
               <Text style={styles.productBrand}>{item.brand}</Text>
               <Text style={styles.productName}>{item.name}</Text>
               <Text style={styles.productPrice}>${item.price}</Text>
-              <Text style={{ fontSize: 12, color: '#555' }}>{item.condition}</Text>
+              <Text style={{ fontSize: 12, color: '#222' }}>{item.condition}</Text>
             </TouchableOpacity>
           )}
         />
