@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
@@ -27,17 +28,40 @@ type Product = {
 type RootStackParamList = {
   ItemDetails: { product: Product };
   ShoppingCart: undefined;
-  // add other screens as needed
 };
 
 export default function ItemDetails() {
   const route = useRoute<RouteProp<RootStackParamList, 'ItemDetails'>>();
-  const product = route.params.product;
+  const initialProduct = route.params.product;
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFullProduct = async () => {
+      try {
+        const doc = await firestore().collection('donations').doc(initialProduct.id).get();
+        if (doc.exists()) {
+          const fullData = doc.data() as Product;
+          setProduct({ ...initialProduct, ...fullData }); // Merge in case navigation passed partial data
+        } else {
+          setProduct(initialProduct);
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setProduct(initialProduct);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFullProduct();
+  }, [initialProduct]);
 
   const handleDelete = async () => {
     try {
-      await firestore().collection('donations').doc(product.id).delete();
+      await firestore().collection('donations').doc(initialProduct.id).delete();
       Alert.alert('Deleted', 'Item has been deleted.');
       navigation.goBack();
     } catch (error) {
@@ -49,18 +73,29 @@ export default function ItemDetails() {
   const handleAddToCart = async () => {
     const user = auth().currentUser;
 
-    if (!user) {
+    if (!user || !product) {
       Alert.alert('Error', 'You must be logged in to add items to cart.');
       return;
     }
 
     try {
+      const itemId = product.id || firestore().collection('donations').doc().id;
+
+      const cleanedProduct: any = {};
+      Object.entries(product).forEach(([key, value]) => {
+        if (value !== undefined) {
+          cleanedProduct[key] = value;
+        }
+      });
+
       await firestore()
         .collection('cart')
         .doc(user.uid)
         .collection('items')
-        .add({
-          ...product,
+        .doc(itemId)
+        .set({
+          ...cleanedProduct,
+          id: itemId,
           addedAt: firestore.FieldValue.serverTimestamp(),
         });
 
@@ -70,6 +105,14 @@ export default function ItemDetails() {
       Alert.alert('Error', 'Failed to add item to cart.');
     }
   };
+
+  if (loading || !product) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -88,7 +131,6 @@ export default function ItemDetails() {
         </View>
       )}
 
-      
       <Text style={styles.detail}>Condition: {product.condition || 'N/A'}</Text>
       <Text style={styles.detail}>Price: ${product.price}</Text>
       <Text style={styles.detail}>Description: {product.description || 'No description'}</Text>
